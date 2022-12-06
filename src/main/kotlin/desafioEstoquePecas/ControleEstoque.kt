@@ -15,27 +15,35 @@ data class Item (val id: Int, var nomeItem: String, var quantidade: Int){
     }
 }
 
-val cabecalhoItensEstoque = """
+class EstoquePecas {
+
+    private val cabecalhoItensEstoque = """
         ------------------------
         ID | Item | Quantidade
         ------------------------
 """.trimIndent()
 
-class EstoquePecas {
-
     private val listaItens: MutableList<Item> = mutableListOf()
 
-    fun inserirItemEstoque (){
+    private fun inserirItemEstoque (){
         println("Digite o produto a ser adicionado:")
         val produto = readln()
         println("Digite a quantidade do produto que está sendo adicionado:")
         val qtdeProduto = readln().toIntOrNull() ?: 0
+        if (qtdeProduto > 999 || qtdeProduto < 0) {
+            throw QuantidadeEstoqueException()
+        }
         listaItens.add(Item((listaItens.size + 1), produto, qtdeProduto))
     }
 
-    fun editarItem(){
+    private fun editarItem(){
         if (listaItens.isEmpty()){
-            println("Não há itens no estoque.")
+            println("""
+                ------------------------
+                Não há itens em estoque.
+                ------------------------
+            """.trimIndent()
+            )
         } else {
             println("Informe o código do item a ser modificado:")
             val codItem = readln().toIntOrNull() ?: 0
@@ -73,26 +81,13 @@ class EstoquePecas {
         }
     }
 
-    fun imprimirItens () {
-        println("------------------------")
-        println("ID | Item | Quantidade")
-        println("------------------------")
-        val comEstoque = listaItens.filter { it.quantidade > 0 }
-        if (comEstoque.isNotEmpty()){
-            comEstoque.forEach {
-                println(it)
-            }
-        } else {
-            listaItens.forEach {
-                println(it)
-            }
-        }
-        println("------------------------\n")
-    }
-
     private fun exibirItensEstoque() {
         if(listaItens.all { it.quantidade == 0 }){
-            println("Não há itens em estoque.\n")
+            println("""
+                ------------------------
+                Não há itens em estoque.
+            """.trimIndent()
+            )
         } else {
             val comEstoque = listaItens.filter { it.quantidade > 0 }
             println(cabecalhoItensEstoque)
@@ -105,7 +100,11 @@ class EstoquePecas {
 
     private fun exibirTodosItens() {
         if (listaItens.isEmpty()) {
-            println("Não há itens em estoque.\n")
+            println("""
+                ------------------------
+                Não há itens em estoque.
+            """.trimIndent()
+            )
         } else {
             println(cabecalhoItensEstoque)
             listaItens.forEach {
@@ -131,5 +130,11 @@ class EstoquePecas {
                 EXIBIRTODOS.cod -> exibirTodosItens()
             }
         } while (menu != FECHAR.cod)
+    }
+}
+
+class QuantidadeEstoqueException : Exception(){
+    override fun getLocalizedMessage(): String {
+        return "Quantidade inválida! Quantidade mínima 0 e máxima 999."
     }
 }
