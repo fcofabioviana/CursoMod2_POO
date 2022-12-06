@@ -4,8 +4,7 @@ import desafioEstoquePecas.menuEditarItens
 import desafioEstoquePecas.menuPrincipal
 
 fun main(){
-    val iniciar = EstoquePecas()
-    iniciar.inicioPrograma()
+    EstoquePecas()
     println("----- Sistema encerrado -----")
 }
 
@@ -17,77 +16,86 @@ data class Item (val id: Int, var nomeItem: String, var quantidade: Int){
 
 class EstoquePecas {
 
+    private var id = 0
+    private var codItemAlteracao = 0
+    private val listaItens: MutableList<Item> = mutableListOf()
+
     private val cabecalhoItensEstoque = """
         ------------------------
         ID | Item | Quantidade
         ------------------------
 """.trimIndent()
 
-    private val listaItens: MutableList<Item> = mutableListOf()
+    private val mensagemEstoqueVazio = """
+        ------------------------
+        Não há itens em estoque.
+""".trimIndent()
+
+
+    init {
+        inicioPrograma()
+    }
+
+    private fun idItem(): Int {
+        id++
+        return id
+    }
 
     private fun inserirItemEstoque (){
-        println("Digite o produto a ser adicionado:")
+        println("Digite o nome do item a ser adicionado:")
         val produto = readln()
-        println("Digite a quantidade do produto que está sendo adicionado:")
+        println("Digite a quantidade do item que está sendo adicionado:")
         val qtdeProduto = readln().toIntOrNull() ?: 0
         if (qtdeProduto > 999 || qtdeProduto < 0) {
             throw QuantidadeEstoqueException()
         }
-        listaItens.add(Item((listaItens.size + 1), produto, qtdeProduto))
+        listaItens.add(Item(idItem(), produto, qtdeProduto))
     }
 
     private fun editarItem(){
         if (listaItens.isEmpty()){
-            println("""
-                ------------------------
-                Não há itens em estoque.
-                ------------------------
-            """.trimIndent()
-            )
+            println(mensagemEstoqueVazio)
+            println("------------------------")
         } else {
             println("Informe o código do item a ser modificado:")
-            val codItem = readln().toIntOrNull() ?: 0
-            if (codItem > listaItens.size || codItem <= 0){
-                println("Item não existe no estoque. Digite um código válido.\n")
+            codItemAlteracao = readln().toIntOrNull() ?: 0
+            if (codItemAlteracao > listaItens.size || codItemAlteracao <= 0){
+                println("Item inexistente! Digite um código válido.\n")
                 return
             } else{
                 println(menuEditarItens)
                 val alteraProduto = readln().toIntOrNull() ?: 0
-                if (alteraProduto <= 0 || alteraProduto > 3){
+                if (alteraProduto < ALTERA_NOME.cod || alteraProduto > ALTERA_NOME_QTDE.cod){
                     println("Opção inválida! Não foi possível alterar o item.\n")
                     return
                 }
                 when (alteraProduto){
-                    ALTERA_NOME.cod -> {
-                        println("Informe o novo nome para o produto de código #0$codItem:")
-                        val novoProduto = readln()//tratar aqui
-                        listaItens[codItem - 1] = listaItens [codItem - 1].copy(nomeItem = novoProduto)
-                    }
-                    ALTERA_QTDE.cod -> {
-                        println("Informe a nova quantidade para o produto de código #0$codItem:")
-                        val novaQtde = readln().toIntOrNull() ?: 0 //tratar aqui
-                        listaItens[codItem - 1] = listaItens [codItem - 1].copy(quantidade = novaQtde)
-                    }
+                    ALTERA_NOME.cod -> alteraNomeItem()
+                    ALTERA_QTDE.cod -> alteraQtdeItem()
                     ALTERA_NOME_QTDE.cod -> {
-                        println("Informe o novo nome para o produto de código #0$codItem:")
-                        val novoProduto = readln() //tratar aqui
-                        listaItens[codItem - 1] = listaItens [codItem - 1].copy(nomeItem = novoProduto)
-                        println("Informe a nova quantidade para o produto de código #0$codItem:")
-                        val novaQtde = readln().toIntOrNull() ?: 0 //tratar aqui
-                        listaItens[codItem - 1] = listaItens [codItem - 1].copy(quantidade = novaQtde)
+                        alteraNomeItem()
+                        alteraQtdeItem()
                     }
                 }
             }
         }
     }
 
+    private fun alteraNomeItem(){
+        println("Informe o novo nome para o produto de código #0$codItemAlteracao:")
+        val novoProduto = readln()//tratar aqui
+        listaItens[codItemAlteracao - 1] = listaItens [codItemAlteracao - 1].copy(nomeItem = novoProduto)
+    }
+
+    private fun alteraQtdeItem(){
+        println("Informe a nova quantidade para o produto de código #0$codItemAlteracao:")
+        val novaQtde = readln().toIntOrNull() ?: 0 //tratar aqui
+        listaItens[codItemAlteracao - 1] = listaItens [codItemAlteracao - 1].copy(quantidade = novaQtde)
+    }
+
     private fun exibirItensEstoque() {
         if(listaItens.all { it.quantidade == 0 }){
-            println("""
-                ------------------------
-                Não há itens em estoque.
-            """.trimIndent()
-            )
+            println(mensagemEstoqueVazio)
         } else {
             val comEstoque = listaItens.filter { it.quantidade > 0 }
             println(cabecalhoItensEstoque)
@@ -100,11 +108,7 @@ class EstoquePecas {
 
     private fun exibirTodosItens() {
         if (listaItens.isEmpty()) {
-            println("""
-                ------------------------
-                Não há itens em estoque.
-            """.trimIndent()
-            )
+            println(mensagemEstoqueVazio)
         } else {
             println(cabecalhoItensEstoque)
             listaItens.forEach {
